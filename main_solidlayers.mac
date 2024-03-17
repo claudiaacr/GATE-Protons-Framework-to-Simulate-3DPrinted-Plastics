@@ -1,0 +1,135 @@
+# Measurements - solid layers
+
+/control/execute mac/verbose.mac
+/control/execute mac/visu.mac
+
+#=====================================================
+# GEOMETRY
+#=====================================================
+
+/gate/geometry/setMaterialDatabase data/GateMaterials.db
+/gate/geometry/setIonisationPotential Water 78 eV
+/gate/geometry/setIonisationPotential PLA100 77.958580668515992 eV
+
+# WORLD
+/gate/world/setMaterial Air
+/gate/world/geometry/setXLength 5.0 m
+/gate/world/geometry/setYLength 5.0 m
+/gate/world/geometry/setZLength 5.0 m
+
+# SLAB
+/gate/world/daughters/name slab
+/gate/world/daughters/insert box
+/gate/slab/setMaterial PLA100
+/gate/slab/geometry/setXLength 1 cm
+/gate/slab/geometry/setYLength 10 cm
+/gate/slab/geometry/setZLength 10 cm
+/gate/slab/placement/setTranslation -0.5 0 0 cm
+/gate/slab/vis/setColor magenta
+
+# GIRAFFE
+/gate/world/daughters/name giraffe
+/gate/world/daughters/insert box
+/gate/giraffe/setMaterial Water
+/gate/giraffe/geometry/setXLength 40 cm
+/gate/giraffe/geometry/setYLength 19.5 cm
+/gate/giraffe/geometry/setZLength 17 cm
+/gate/giraffe/placement/setTranslation 20 0 0 cm
+/gate/giraffe/vis/setColor blue
+
+# DETECTOR
+/gate/giraffe/daughters/name detetor
+/gate/giraffe/daughters/insert cylinder
+/gate/detetor/setMaterial Water
+/gate/detetor/geometry/setRmin 0 cm
+/gate/detetor/geometry/setRmax 6 cm
+/gate/detetor/geometry/setHeight 40 cm
+/gate/detetor/placement/setTranslation 0 0 0 cm
+/gate/detetor/placement/setRotationAxis  0 1 0
+/gate/detetor/placement/setRotationAngle 90 deg
+/gate/detetor/vis/setColor green
+
+#=====================================================
+# PHYSICS 
+#=====================================================
+
+/gate/physics/addPhysicsList QGSP_BIC_EMZ
+/gate/physics/Gamma/SetCutInRegion world 1 mm
+/gate/physics/Electron/SetCutInRegion world 1 mm
+/gate/physics/Positron/SetCutInRegion world 1 mm
+/gate/physics/Gamma/SetCutInRegion slab 0.01 mm
+/gate/physics/Electron/SetCutInRegion slab 0.01 mm
+/gate/physics/Positron/SetCutInRegion slab 0.01 mm
+/gate/physics/Gamma/SetCutInRegion giraffe 0.01 mm
+/gate/physics/Electron/SetCutInRegion giraffe 0.01 mm
+/gate/physics/Positron/SetCutInRegion giraffe 0.01 mm
+/gate/physics/Gamma/SetCutInRegion detetor 0.01 mm
+/gate/physics/Electron/SetCutInRegion detetor 0.01 mm
+/gate/physics/Positron/SetCutInRegion detetor 0.01 mm
+
+/gate/physics/displayCuts
+
+#=====================================================
+# Statistics actor 
+#=====================================================
+
+/gate/actor/addActor SimulationStatisticActor stat
+/gate/actor/stat/saveEveryNSeconds 120
+/gate/actor/stat/save output/stats_solidlayers.txt
+
+#=====================================================
+# EmCalculator actor 
+#=====================================================
+
+/gate/actor/addActor EmCalculatorActor EM-properties
+/gate/actor/EM-properties/setParticleName proton
+/gate/actor/EM-properties/setEnergy 210 MeV
+/gate/actor/EM-properties/save output/EMprops_solidlayers.txt
+
+#=====================================================
+# Dose actor 
+#=====================================================
+
+/gate/actor/addActor DoseActor doseDistribution
+/gate/actor/doseDistribution/attachTo detetor
+/gate/actor/doseDistribution/stepHitType random
+/gate/actor/doseDistribution/enableNumberOfHits false
+/gate/actor/doseDistribution/setPosition 0 0 0 cm
+/gate/actor/doseDistribution/setResolution 1 1 4000
+/gate/actor/doseDistribution/enableDose true
+/gate/actor/doseDistribution/enableUncertaintyDose true
+/gate/actor/doseDistribution/enableEdep true
+/gate/actor/doseDistribution/enableSquaredDose false
+/gate/actor/doseDistribution/enableDoseToWater false
+/gate/actor/doseDistribution/enableUncertaintyDoseToWater false
+/gate/actor/doseDistribution/saveEveryNSeconds 120
+/gate/actor/doseDistribution/save output/solidlayers_.txt
+
+#=====================================================
+# INITIALISATION 
+#=====================================================
+
+/gate/run/initialize
+
+#=====================================================
+# SOURCE 
+#=====================================================
+
+/gate/source/addSource PBS TPSPencilBeam
+/gate/source/PBS/setTestFlag false
+/gate/source/PBS/setPlan data/plan_singlePB.txt
+/gate/source/PBS/setFlatGenerationFlag false
+/gate/source/PBS/setSpotIntensityAsNbIons false
+/gate/source/PBS/setSortedSpotGenerationFlag false
+/gate/source/PBS/setSigmaEnergyInMeVFlag false
+/gate/source/PBS/setSourceDescriptionFile data/uclhospital_bmv3.txt
+
+#=====================================================
+# START BEAMS 
+#=====================================================
+
+/gate/random/setEngineName MersenneTwister
+/gate/random/setEngineSeed auto
+
+/gate/application/setTotalNumberOfPrimaries 100000
+/gate/application/start

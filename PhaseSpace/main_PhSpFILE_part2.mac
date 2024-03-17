@@ -1,0 +1,129 @@
+# Phase Space Files
+
+/control/execute mac/verbose.mac
+/control/execute mac/visu.mac
+
+#=====================================================
+# GEOMETRY
+#=====================================================
+
+/gate/geometry/setMaterialDatabase data/GateMaterials.db
+/gate/geometry/setIonisationPotential Water 78 eV
+/gate/geometry/setIonisationPotential PLA100 77.958580668515992 eV
+
+# WORLD
+/gate/world/setMaterial Air
+/gate/world/geometry/setXLength 5.0 m
+/gate/world/geometry/setYLength 5.0 m
+/gate/world/geometry/setZLength 5.0 m
+
+# WATER BOX
+#/gate/world/daughters/name water_box
+#/gate/world/daughters/insert box
+#/gate/water_box/setMaterial Water
+#/gate/water_box/geometry/setXLength 5 cm
+#/gate/water_box/geometry/setYLength 10 cm
+#/gate/water_box/geometry/setZLength 10 cm
+#/gate/water_box/placement/setTranslation 2.5 0 0 cm
+#/gate/water_box/vis/setColor blue
+
+# PLAN
+/gate/world/daughters/name plane
+/gate/world/daughters/insert box
+/gate/plane/setMaterial Air
+/gate/plane/geometry/setXLength 1 nm
+/gate/plane/geometry/setYLength 1 m
+/gate/plane/geometry/setZLength 1 m
+/gate/plane/placement/setTranslation 5.5 0 0 cm
+/gate/plane/vis/setColor magenta
+
+# WATER BOX 2
+/gate/world/daughters/name water_box2
+/gate/world/daughters/insert box
+/gate/water_box2/setMaterial Water
+/gate/water_box2/geometry/setXLength 25 cm
+/gate/water_box2/geometry/setYLength 10 cm
+/gate/water_box2/geometry/setZLength 10 cm
+/gate/water_box2/placement/setTranslation 19.5 0 0 cm
+/gate/water_box2/vis/setColor blue
+
+#=====================================================
+# PHYSICS 
+#=====================================================
+
+/gate/physics/addPhysicsList QGSP_BIC_EMZ
+/gate/physics/Gamma/SetCutInRegion world 1 mm
+/gate/physics/Electron/SetCutInRegion world 1 mm
+/gate/physics/Positron/SetCutInRegion world 1 mm
+#/gate/physics/Gamma/SetCutInRegion water_box 0.01 mm
+#/gate/physics/Electron/SetCutInRegion water_box 0.01 mm
+#/gate/physics/Positron/SetCutInRegion water_box 0.01 mm
+/gate/physics/Gamma/SetCutInRegion plane 0.01 mm
+/gate/physics/Electron/SetCutInRegion plane 0.01 mm
+/gate/physics/Positron/SetCutInRegion plane 0.01 mm
+/gate/physics/Gamma/SetCutInRegion water_box2 0.01 mm
+/gate/physics/Electron/SetCutInRegion water_box2 0.01 mm
+/gate/physics/Positron/SetCutInRegion water_box2 0.01 mm
+
+/gate/physics/displayCuts
+
+#=====================================================
+# Statistics actor 
+#=====================================================
+
+/gate/actor/addActor SimulationStatisticActor stat
+/gate/actor/stat/saveEveryNSeconds 120
+/gate/actor/stat/save output/stats_PhSp_part2.txt
+
+#=====================================================
+# EmCalculator actor 
+#=====================================================
+
+/gate/actor/addActor EmCalculatorActor EM-properties
+/gate/actor/EM-properties/setParticleName proton
+/gate/actor/EM-properties/setEnergy 210 MeV
+/gate/actor/EM-properties/save output/EMprops_PhSp_part2.txt
+
+#=====================================================
+# Dose actor 
+#=====================================================
+
+/gate/actor/addActor DoseActor doseDistribution
+/gate/actor/doseDistribution/attachTo water_box2
+/gate/actor/doseDistribution/stepHitType random
+/gate/actor/doseDistribution/enableNumberOfHits false
+/gate/actor/doseDistribution/setPosition 0 0 0 cm
+/gate/actor/doseDistribution/setResolution 4000 1 1
+/gate/actor/doseDistribution/enableDose false
+/gate/actor/doseDistribution/enableUncertaintyDose false
+/gate/actor/doseDistribution/enableEdep true
+/gate/actor/doseDistribution/enableSquaredDose false
+/gate/actor/doseDistribution/enableDoseToWater false
+/gate/actor/doseDistribution/enableUncertaintyDoseToWater false
+/gate/actor/doseDistribution/saveEveryNSeconds 120
+/gate/actor/doseDistribution/save output/PhSp_part2.txt
+
+#=====================================================
+# INITIALISATION 
+#=====================================================
+
+/gate/run/initialize
+
+#=====================================================
+# Phase Space SOURCE 
+#=====================================================
+
+/gate/source/addSource PhSp2 phaseSpace
+/gate/source/PhSp2/addPhaseSpaceFile output/MyOutputFile.root
+/gate/source/PhSp2/attachTo plane
+/gate/source/PhSp2/setPhaseSpaceInWorldFrame true
+
+#=====================================================
+# START BEAMS 
+#=====================================================
+
+/gate/random/setEngineName MersenneTwister
+/gate/random/setEngineSeed auto
+
+/gate/application/setTotalNumberOfPrimaries 100000
+/gate/application/start
